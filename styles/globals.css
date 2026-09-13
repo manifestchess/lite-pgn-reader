@@ -1,0 +1,601 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "chessground/assets/chessground.base.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ===== Theme architecture =====
+   Manifest brand only — light and dark modes. next-themes manages the
+   `class` attribute on <html> ("light" | "dark"). Our `.light` /
+   `.dark` rules below override HeroUI v3's stock palette with our
+   amber-on-cream / amber-on-charcoal brand colours. HeroUI v3's own
+   selectors (`:root, .light, [data-theme="light"]` for light defaults,
+   `.dark, [data-theme="dark"]` for dark defaults) fire underneath; our
+   rules are loaded after, so they win on cascade source order.
+
+   All app surfaces flow from HeroUI v3 native tokens (--background,
+   --surface, --foreground, --muted, --accent, --border, --default).
+   Tailwind utilities map to the same tokens via @theme inline below.
+   ================================================================ */
+
+.light {
+  --background: #f5f0e8;
+  --surface: #ede8df;
+  --surface-secondary: #e3dccf;
+  --surface-tertiary: #d8d0c4;
+  --overlay: #ede8df;
+  --foreground: #1a1814;
+  --muted: #635749;
+  --accent: #d4880a;
+  /* Not white. White on this amber measures 2.87:1 here and 2.15:1 in dark,
+     so it fails AA on every primary button in both themes. The near
+     black ink gives 6.18:1 and 8.25:1 on the same two fills. */
+  --accent-foreground: #1a1814;
+  /* Amber as INK, which is a different problem from amber as a fill.
+     --accent is 2.53:1 on the page and 2.10:1 on an amber-tinted chip, so
+     every amber label, count and link fails AA badly. It is not enough to
+     measure against the flat surfaces: most amber text in this app sits on
+     a bg-primary/8..20 wash, and compositing those over the surface gives a
+     darker bed than the surface itself. The worst is bg-primary/20 over
+     surface (#e8d5b4), where this value still clears 4.5:1 at 4.62.
+
+     Every amber text site is body size -- there is no large text carve-out
+     to lean on. Darker than this is not available: at the lightness AA
+     demands, hue 70 is gamut-capped near chroma 0.104, so this is the most
+     saturated amber that can exist here. It reads bronze, and that is the
+     price of legibility. Fills keep --accent, so the brand mark stays. */
+  --accent-text: #845103;
+  /* Positive text. HeroUI's --success is one value for both themes at
+     oklch lightness 0.73, which is a pale mint on this cream background:
+     the accuracy figures and "Clean game" are barely legible on it. Dark
+     enough here to read, light enough in .dark to not glare. */
+  --positive: #0e6e42;
+  /* Declared per theme. Left undeclared it inherits HeroUI's #ff383c, which
+     measures 3.15:1 on this page colour. */
+  --danger: #b3261e;
+  /* Ink on a danger fill, and it cannot be one value for both themes:
+     this red is dark, so white reads at 6.54 and near-black at 2.71,
+     while the dark theme's red is light and the two swap places.
+     Hardcoding text-white on a destructive confirm fails AA in dark
+     mode at 2.77. */
+  --danger-foreground: #ffffff;
+  /* Declared, because unset it falls through to HeroUI's #f5a524, which
+     is 1.67 on this page: a line like "engine unavailable" is very nearly
+     invisible. Same value as --judgment-inaccuracy-text, and
+     for the same reason -- it is used as text, where the bar is 4.5
+     rather than the 3.0 a warning dot would need. */
+  --warning: #835500;
+  /* Judgement colours, split by what they paint.
+     All three text values are darkened enough that the accuracy figures
+     and review counts clear 4.5, which leaves mistake and inaccuracy as
+     near-identical browns. Type keeps that bar. */
+  --judgment-blunder-text: #be123c;
+  --judgment-mistake-text: #9a3412;
+  --judgment-inaccuracy-text: #835500;
+  /* Dots, chart markers and legend swatches, where the bar is 3.0. They
+     measure 3.82, 3.24 and 3.30 on the darkest panel one can sit on, and
+     the room that buys over 4.5 is spent on hue rather than depth: 64
+     degrees apart end to end, against the text set's 54. */
+  --judgment-blunder-mark: #d81030;
+  --judgment-mistake-mark: #c25a00;
+  --judgment-inaccuracy-mark: #8a7600;
+  /* Annotation glyphs. These colour the move text itself, so the bar is
+     4.5 rather than 3.0, and no single value can clear it against both a
+     cream and a near-black bed: the two luminance windows do not
+     overlap. Hence a pair per hue. Each keeps its original hue and
+     saturation and moves only in lightness, so a "!" is the same green
+     idea in both themes.
+
+     Measured against the worst bed a move can land on, which is not a
+     surface token: hovering washes the row with 15% of --foreground,
+     giving #c5bfb3 here and #3f3f3f in dark on the darkest panel a
+     row can sit on. Every value clears 4.8 there. The glyph carries the
+     meaning regardless of hue, which is what makes the light set's
+     narrower spread acceptable. */
+  --nag-good: #11561c;
+  --nag-brilliant: #0d5350;
+  --nag-interesting: #2800f2;
+  --nag-dubious: #5f4609;
+  --nag-mistake: #644400;
+  --nag-blunder: #8c231a;
+  --nag-novelty: #6709bf;
+  --border: #d8d0c4;
+  --separator: #d8d0c4;
+  --default: #d8d0c4;
+  --default-foreground: #1a1814;
+  --field-background: #ffffff;
+  --focus: var(--accent);
+}
+
+.dark {
+  --background: #0d0d0d;
+  --surface: #181818;
+  --surface-secondary: #202020;
+  --surface-tertiary: #282828;
+  --overlay: #181818;
+  --foreground: #ededed;
+  --muted: #9b9b9b;
+  --accent: #f59e0b;
+  --accent-foreground: #1a1814;
+  /* Unchanged in dark: this amber measures 8.27:1 on the surface and 5.66:1
+     on the worst amber-tinted bed, so ink and fill can be the same value. */
+  --accent-text: var(--accent);
+  --positive: #34d399;
+  --danger: #ff6b6e;
+  /* Near-black, not white: 6.40 against this lighter red, where white is
+     2.77. See the light theme's note. */
+  --danger-foreground: #1a1814;
+  /* Declared here too, not just in light. Left out, it falls through to
+     HeroUI's #f5a524 -- a value we do not control, cannot measure from
+     our own stylesheet, and which changes when the library does. Same
+     value as --judgment-inaccuracy-text, keeping the parity the light
+     theme already has. */
+  --warning: #fbbf24;
+  --judgment-blunder-text: #f44b67;
+  --judgment-mistake-text: #f97316;
+  --judgment-inaccuracy-text: #fbbf24;
+  /* See the light theme's note. There is luminance to spare against a
+     near-black page, so the marks spend it on hue: red, orange and
+     yellow proper rather than rose, red-orange and amber. */
+  --judgment-blunder-mark: #ff3355;
+  --judgment-mistake-mark: #ff8c00;
+  --judgment-inaccuracy-mark: #ffd60a;
+  /* See the light theme's note. Same hues, lightened instead. */
+  --nag-good: #28cb43;
+  --nag-brilliant: #1fc4be;
+  --nag-interesting: #b3a4ff;
+  --nag-dubious: #e3a516;
+  --nag-mistake: #eca100;
+  --nag-blunder: #eb9b94;
+  --nag-novelty: #cc9bfa;
+  --border: #282828;
+  --separator: #282828;
+  --default: #2e2e2e;
+  --default-foreground: #ededed;
+  --field-background: #181818;
+  --focus: var(--accent);
+}
+
+/* ===== Colours that must NOT follow the theme ==========================
+   The promotion picker's backdrops key off the PIECE colour, because the
+   piece sprites are fixed images: a theme-following panel would put black
+   pieces on near-black in dark mode and white on white in light. Anything
+   drawn against those fixed backdrops has to be fixed for the same
+   reason, and the focus ring is drawn against them.
+
+   `--accent` is #d4880a in light and #f59e0b in dark, so a single
+   `ring-primary` measures 2.28 on the light backdrop and would be
+   worse in dark, where the accent is lighter still. These two do not
+   move, and each is aimed at the backdrop it actually lands on: 3.99 on
+   neutral-200, 7.05 on neutral-800. Both are still the brand amber.
+   ==================================================================== */
+.light,
+.dark {
+  --promotion-ring-on-light: #9b6307;
+  --promotion-ring-on-dark: #f59e0b;
+}
+
+/* ===== Tailwind utility tokens — single source of truth.
+   Every utility name used by the app maps to a HeroUI v3 native token.
+   When the theme changes, the utility automatically follows. ===== */
+@theme inline {
+  /* Font tokens are NOT redefined here: Tailwind v4 ships defaults, and a
+     theme that wants different type overrides --font-sans on its own class.
+     The html rule below supplies the app font (the SF Pro system stack) at
+     type-selector specificity (0,0,1), which any class selector can override
+     naturally without `!important`. */
+  --font-chess: "Noto Chess", "Noto Sans", sans-serif;
+
+  --color-positive: var(--positive);
+  --color-page: var(--background);
+  --color-box: var(--surface);
+  --color-low: var(--surface-secondary);
+  --color-zebra2: var(--surface-secondary);
+  --color-variation: var(--surface);
+
+  --color-txt: var(--foreground);
+  --color-txt-dim: var(--muted);
+  --color-txt-dimmer: var(--muted);
+  --color-txt-clear: var(--foreground);
+  --color-txt-clearer: var(--foreground);
+
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning: var(--warning);
+  /* Also available as a FILL, for the progress bars: amber on its own
+     amber track measures 2.10 and 1.97, and darkening the track does not
+     help (--border under an --accent fill is 1.88). The bar goes bronze
+     in light and keeps --accent in dark, where it already clears. */
+  --color-accent-text: var(--accent-text);
+
+  /* Judgment colours as utilities. Declared here because
+     text-judgment-* is used directly in components; without the mapping
+     Tailwind emits no rule and the text quietly keeps its inherited
+     colour, which looks deliberate and is not. The utilities colour type,
+     so they take the text half of the pair; marks are set inline from
+     judgmentMarkColor. */
+  --color-judgment-blunder: var(--judgment-blunder-text);
+  --color-judgment-mistake: var(--judgment-mistake-text);
+  --color-judgment-inaccuracy: var(--judgment-inaccuracy-text);
+
+  --color-primary: var(--accent);
+  --color-primary-soft: var(--accent);
+  /* Ink, not fill. Use text-primary-ink for any amber TEXT or icon;
+     bg-primary/border-primary/ring-primary keep the brighter --accent. */
+  --color-primary-ink: var(--accent-text);
+  --color-accent: var(--accent);
+
+  --color-line: var(--border);
+  --color-transp: var(--border);
+
+  /* Shadow utilities flow through HeroUI's shadow tokens so a theme that
+     changes shadow design propagates to every shadow-* utility
+     automatically. */
+  --shadow-sm: var(--field-shadow);
+  --shadow-md: var(--surface-shadow);
+  --shadow-lg: var(--surface-shadow);
+  --shadow-xl: var(--overlay-shadow);
+  --shadow-panel: var(--surface-shadow);
+}
+
+/* ===== Body ====================================================
+   HeroUI tokens drive page bg + ink.
+   ================================================================ */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Native app: SF Pro via the system stack (no Next font pipeline here). */
+html {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+/* ===== Active-state chip utility ====================================
+   Selected chip: amber ink on an amber wash, in place of the global
+   "bg-primary/15 text-primary" pattern, which is illegible when the
+   accent is a low-saturation colour.
+
+   The ink is --accent-text, the darker amber reserved for text (it
+   aliases --accent in dark, where amber already passes). With --accent
+   as the ink on a 28% wash the label measures only 1.86:1 in light. The
+   wash is 15% rather than 28% so that dim text sitting ON the chip clears
+   the bar too: at 28% that text is 4.31:1 regardless of the chip's own
+   ink, while 15% gives 4.83:1 in light and 6.33:1 in dark.
+   ================================================================ */
+.chip-active {
+  background-color: color-mix(in oklab, var(--accent) 15%, transparent);
+  color: var(--accent-text);
+}
+
+.chip-active-strong {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* ===== Side-to-move clock pulse ====================================
+   Pulses the BORDER of the active player's clock chip without dimming
+   its text — so the readout stays crisp during the entire pulse cycle.
+   ================================================================ */
+@keyframes clock-border-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 80%, transparent);
+  }
+}
+.animate-clock-pulse {
+  animation: clock-border-pulse 1.6s ease-in-out infinite;
+}
+
+/* ===== Review row analyzing shimmer =================================
+   Sweeps a soft gradient across a host element to indicate
+   indeterminate work. The host should be `position: relative;
+   overflow: hidden;`. Used by the GameReviewRow's analyzing bar and
+   the AnalysisProgress pre-totals shimmer. */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== HeroUI v3 Slider — readable rail + circular thumb ============
+   v3's default leaves 12px transparent borders on the track to make
+   space for the thumb at min/max. They render as visible dark stubs.
+   We drop the borders, round the rail, and centre a white circular
+   thumb with an amber ring so it reads on both halves of the fill.
+   ================================================================ */
+.slider .slider__track {
+  background: var(--default);
+  border-radius: 9999px;
+}
+.slider .slider__fill {
+  background: var(--accent);
+  border-radius: 9999px;
+}
+.slider[data-orientation="horizontal"] .slider__track {
+  border-inline-width: 0;
+  height: 6px;
+}
+.slider[data-orientation="horizontal"] .slider__thumb {
+  transform: translateY(-50%);
+  width: 18px;
+}
+.slider .slider__thumb::after {
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 9999px;
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+}
+
+/* ===== HeroUI v3 Switch — visible track + thumb in both states ======
+   The track gets an inset hairline so its silhouette is always legible
+   even when the row behind it is amber-tinted.
+   ================================================================ */
+.switch__control {
+  background: var(--default);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.switch[aria-checked="true"] .switch__control,
+.switch[data-selected="true"] .switch__control {
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 80%, black);
+}
+.switch__thumb {
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+.switch[aria-checked="true"] .switch__thumb,
+.switch[data-selected="true"] .switch__thumb {
+  background: var(--accent-foreground);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.18),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+/* ===== Focus ring on inputs ===== */
+[data-slot="input-wrapper"][data-focus="true"],
+[data-slot="input-wrapper"]:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+input:not([data-slot]):focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* HeroUI v3 BEM input (rendered by `<TextField><Input /></TextField>`).
+   The default focus indication is a 2px outset `box-shadow` ring, which
+   gets clipped by the modal container's overflow on the left and right
+   edges — the ring shows only on the top and bottom. Flipping the input's
+   border-color on focus would rely on field-border-width tokens we don't
+   define here. Instead, draw the focus indicator as a CSS `outline` with
+   negative offset so the ring is rendered INSIDE the input box and cannot
+   be clipped by any parent. Same trick works for the invalid state. */
+.input:focus,
+.input[data-focused="true"],
+.input:focus-visible,
+.input[data-focus-visible="true"] {
+  box-shadow: none;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.input[data-invalid="true"],
+.input[aria-invalid="true"] {
+  box-shadow: none;
+  outline: 2px solid var(--danger);
+  outline-offset: -2px;
+}
+
+/* ===== Indeterminate progress bar ===================================
+   Used by JobsIndicator's <ProgressBar progress={null} />. Stripe
+   slides across the track to honestly convey "still working" when no
+   percentage is available for the running operation.
+   ================================================================ */
+@keyframes manifest-indeterminate {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(450%); }
+}
+.indeterminate-bar__stripe {
+  animation: manifest-indeterminate 1.4s ease-in-out infinite;
+}
+
+/* ===== Brand assets — theme-aware via background-image swap ==========
+   The brand mark has the container baked in, so we serve the
+   "dark container, cream squares" variant on light surfaces and the
+   "cream container, dark squares" variant on dark surfaces.
+   ================================================================ */
+.brand-logo,
+.brand-icon {
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.brand-logo {
+  background-image: url("/brand/logo-wordmark-light.webp");
+  aspect-ratio: 1505 / 231;
+}
+.dark .brand-logo {
+  background-image: url("/brand/logo-wordmark-dark.webp");
+}
+.brand-icon {
+  background-image: url("/brand/logo-mark-light.webp");
+  aspect-ratio: 1 / 1;
+}
+.dark .brand-icon {
+  background-image: url("/brand/logo-mark-dark.webp");
+}
+
+/* ===== Chess piece figurine font ===== */
+@font-face {
+  font-family: "Noto Chess";
+  font-display: block;
+  src: url("/font/lichess-chess.woff2") format("woff2");
+}
+
+/* ===== Chessground overrides (external DOM — can't use Tailwind) ===== */
+/* Board theme & piece set images are injected dynamically by ChessgroundWrapper */
+
+.cg-wrap coords {
+  font-size: 13px;
+  font-weight: bold;
+  font-family: "Noto Sans", sans-serif;
+  opacity: 1;
+}
+
+/* Ranks: inside board, top-left of each row */
+.cg-wrap coords.ranks {
+  top: 0;
+  left: 3px;
+  height: 100%;
+  align-items: flex-start;
+}
+
+.cg-wrap coords.ranks coord {
+  transform: translateY(2px);
+}
+
+/* Files: inside board, bottom-right of each column */
+.cg-wrap coords.files {
+  bottom: 2px;
+  left: 0;
+  width: 100%;
+  text-align: right;
+}
+
+.cg-wrap coords.files coord {
+  padding-right: 3px;
+}
+
+/* ===== Derived from chessground's assets/chessground.brown.css =============
+   The coordinate colour rules below are a recoloured derivative of that file,
+   and the `cg-board square.*` interaction rules that follow it are copied
+   verbatim from it. We copy rather than @import the brown theme because that
+   theme also paints the board squares, which our board-image themes own.
+
+   Copyright (c) the chessground authors (https://github.com/lichess-org/chessground)
+   SPDX-License-Identifier: GPL-3.0-or-later
+   ========================================================================= */
+
+/* Alternating colors: dark on light squares, light on dark squares */
+.orientation-white .ranks :nth-child(even),
+.orientation-white .files :nth-child(even),
+.orientation-black .ranks :nth-child(odd),
+.orientation-black .files :nth-child(odd) {
+  color: rgba(21, 120, 60, 0.85);
+}
+
+.orientation-white .ranks :nth-child(odd),
+.orientation-white .files :nth-child(odd),
+.orientation-black .ranks :nth-child(even),
+.orientation-black .files :nth-child(even) {
+  color: rgba(200, 235, 180, 0.9);
+}
+
+/* Move destination dots & board interaction highlights */
+cg-board square.move-dest {
+  background: radial-gradient(rgba(20, 85, 30, 0.5) 22%, #208530 0, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 0);
+}
+cg-board square.oc.move-dest {
+  background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 85, 0, 0.3) 80%);
+}
+cg-board square.move-dest:hover {
+  background: rgba(20, 85, 30, 0.3);
+}
+cg-board square.last-move {
+  background-color: rgba(155, 199, 0, 0.41);
+}
+cg-board square.selected {
+  background-color: rgba(20, 85, 30, 0.5);
+}
+cg-board square.check {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 0, 0, 1) 0%,
+    rgba(231, 0, 0, 1) 25%,
+    rgba(169, 0, 0, 0) 89%,
+    rgba(158, 0, 0, 0) 100%
+  );
+}
+
+/* Board fills its container */
+.board-container > .cg-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Electron-specific: window dragging (can't use Tailwind) ===== */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag !important;
+}
+
+.drag-region * {
+  -webkit-app-region: no-drag;
+}
+
+/* Chromium computes -webkit-app-region in screen space, so any element whose
+   rect overlaps the board pane (.drag-region) is treated as a drag handle and
+   eats clicks. Catch every popover/menu/modal/dialog surface so they stay
+   interactive when they overlap the board.
+   - v3 BEM classes: dropdown__popover, select__popover, popover, modal__*
+   - RAC role attributes: menu, listbox, dialog, tooltip
+   - any fixed-position high-z element used by custom (non-HeroUI) popovers */
+.dropdown__popover,
+.select__popover,
+.popover,
+.modal__backdrop,
+.modal__container,
+[role="menu"],
+[role="listbox"],
+[role="dialog"],
+[role="tooltip"],
+.fixed[class*="z-"],
+.absolute[class*="z-50"],
+.absolute[class*="z-[100]"] {
+  -webkit-app-region: no-drag !important;
+}
+
+/* Promotion picker.
+   The strip and its backdrop fade in together, so a piece that reaches
+   the last rank does not swap the board out from under the player with
+   no transition. Short enough not to delay the choice. */
+@keyframes promotion-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.promotion-fade {
+  animation: promotion-fade-in 120ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promotion-fade {
+    animation: none;
+  }
+}

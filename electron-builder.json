@@ -1,0 +1,81 @@
+{
+  "appId": "com.manifestchess.lite",
+  "productName": "Manifest Chess Lite",
+  "npmRebuild": false,
+  "electronDist": "build/electron-mas-dist",
+  "directories": {
+    "buildResources": "build",
+    "output": "dist/release"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "!dist-electron/**/*.map",
+    "package.json",
+    "!node_modules/**/*",
+    "node_modules/chessops/**/*",
+    "node_modules/@badrap/result/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "dist/renderer",
+      "to": "renderer"
+    }
+  ],
+  "afterPack": "scripts/afterpack-quicklook.mjs",
+  "mac": {
+    "target": [
+      {
+        "target": "dir",
+        "arch": [
+          "arm64"
+        ]
+      }
+    ],
+    "category": "public.app-category.games",
+    "icon": "build/icon.png",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "identity": "Ordinary Ventures MB (VN3M9RS6R3)",
+    "entitlements": "build/entitlements.plist",
+    "entitlementsInherit": "build/entitlements.inherit.plist",
+    "signIgnore": [
+      "\\.appex(/|$)"
+    ],
+    "notarize": false,
+    "extendInfo": {
+      "CFBundleDocumentTypes": [
+        {
+          "CFBundleTypeName": "Chess Game (PGN)",
+          "CFBundleTypeRole": "Editor",
+          "LSHandlerRank": "Default",
+          "LSItemContentTypes": [
+            "com.manifestchess.pgn"
+          ]
+        }
+      ],
+      "UTImportedTypeDeclarations": [
+        {
+          "UTTypeIdentifier": "com.manifestchess.pgn",
+          "UTTypeDescription": "Portable Game Notation",
+          "UTTypeConformsTo": [
+            "public.plain-text"
+          ],
+          "UTTypeTagSpecification": {
+            "public.filename-extension": [
+              "pgn"
+            ],
+            "public.mime-type": [
+              "application/vnd.chess-pgn",
+              "application/x-chess-pgn"
+            ]
+          }
+        }
+      ],
+      "NSHumanReadableCopyright": "Copyright © 2026 Ordinary Ventures MB",
+      "ITSAppUsesNonExemptEncryption": false,
+      "ElectronTeamID": "VN3M9RS6R3"
+    },
+    "preAutoEntitlements": false
+  },
+  "publish": null
+}

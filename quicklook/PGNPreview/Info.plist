@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>PGN Preview</string>
+	<key>CFBundleExecutable</key>
+	<string>PGNPreview</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.manifestchess.lite.PGNPreview</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PGNPreview</string>
+	<key>CFBundlePackageType</key>
+	<string>XPC!</string>
+	<key>CFBundleShortVersionString</key>
+	<string>__VERSION__</string>
+	<key>CFBundleVersion</key>
+	<string>__BUILD__</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Ordinary Ventures MB</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.quicklook.preview</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>PGNPreview.PreviewProvider</string>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<!-- The types this extension previews. The app declares this
+			     UTI in its own Info.plist; both must agree or Quick Look
+			     never routes a PGN here. -->
+			<key>QLSupportedContentTypes</key>
+			<array>
+				<string>com.manifestchess.pgn</string>
+			</array>
+			<!-- The provider is handed a read-only URL for the single
+			     file being previewed and reads it directly, so it does
+			     not need the file to be copied into its container. -->
+			<key>QLSupportsSearchableItems</key>
+			<false/>
+		</dict>
+	</dict>
+</dict>
+</plist>

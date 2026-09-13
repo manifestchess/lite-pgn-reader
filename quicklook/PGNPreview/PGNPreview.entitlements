@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Quick Look extension entitlements.
+
+  An app extension gets its own sandbox rather than inheriting the
+  parent's, so com.apple.security.inherit is wrong here: that key is for
+  child processes of the app, and an .appex is launched by the system,
+  not by us.
+
+  Read-only file access is the whole grant. Quick Look hands the provider
+  a URL for exactly the file being previewed; the extension never opens
+  anything else, has no network access, and needs nothing further.
+
+  The application identifier and team identifier are normally injected
+  by Xcode from the provisioning profile. This extension is signed by
+  hand against an explicit entitlements file, and that replaces the
+  entitlement set rather than merging into it, so without these two the
+  signature carries no identifier while the embedded profile does.
+  Upload validation accepts that and then refuses the build for
+  TestFlight, warning 90886, because the two must agree. Both profiles,
+  development and distribution, declare the same identifier, so one
+  value serves both builds.
+
+  Watch the punctuation in this comment. codesign parses entitlements
+  with AMFI, and XML forbids a doubled hyphen inside a comment, so
+  writing a command line flag with its leading dashes here fails the
+  whole file with "AMFIUnserializeXML: syntax error" while plutil still
+  reports it as valid.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+	<key>com.apple.application-identifier</key>
+	<string>VN3M9RS6R3.com.manifestchess.lite.PGNPreview</string>
+	<key>com.apple.developer.team-identifier</key>
+	<string>VN3M9RS6R3</string>
+</dict>
+</plist>

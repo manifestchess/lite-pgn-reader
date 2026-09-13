@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Mac App Store entitlements for the main application.
+
+  Deliberately minimal. Nothing is copied forward from the Developer ID
+  plist "to be safe" — that is the rejection path.
+
+  No com.apple.security.cs.* entitlements. Those are hardened-runtime
+  exceptions and the hardened runtime is OFF for the store target (see
+  electron-builder.mas.json); a store binary that is hardened AND carries
+  cs.* exceptions is what review rejects. Stockfish is WebAssembly and
+  needs JIT, which is unrestricted without the hardened runtime, so
+  allow-jit is not required here.
+
+  No network entitlements of any kind — the app is offline by
+  construction and has no accounts, sync, or purchases.
+
+  No explicit app group: @electron/osx-sign injects the Team-ID-prefixed
+  form automatically when app-sandbox is true (the MAS Electron dist's
+  port rendezvous relies on it), and that form needs no provisioning
+  authorization.
+
+  files.user-selected.read-write covers the only file access there is:
+  a PGN the user picked/dropped, and Save As to a location they chose. A
+  PGN opened through Launch Services is granted automatically.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+</dict>
+</plist>

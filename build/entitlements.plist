@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <!--
+      There is NO com.apple.security.network.* entitlement in this file or
+      the inherit file. Under the App Sandbox the app cannot open a socket,
+      so it stays offline by construction rather than by promise.
+
+      cs.allow-jit is required by V8/WASM (the bundled Stockfish is
+      WebAssembly) under the hardened runtime. It grants MAP_JIT only.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <!--
+      Team-prefixed app group: a sandboxed Chromium app must
+      bootstrap_check_in its MachPortRendezvousServer service, and the
+      sandbox only permits mach names prefixed by a held app group. Without
+      this the app dies at launch; with osx-sign's auto-injected
+      com.apple.application-identifier instead, AMFI SIGKILLs under
+      Developer ID (restricted entitlement without a provisioning profile).
+      Hence preAutoEntitlements=false plus this explicit group.
+    -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+      <string>VN3M9RS6R3.com.manifestchess.lite</string>
+    </array>
+  </dict>
+</plist>

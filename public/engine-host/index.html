@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Manifest Chess Lite engine host</title>
+  </head>
+  <body>
+    <!--
+      A hidden window that exists for one reason: it is served with
+      Cross-Origin-Opener-Policy: same-origin and
+      Cross-Origin-Embedder-Policy: credentialless (set by app-protocol.ts
+      on /engine-host/ and /stockfish/ only), which makes it cross-origin
+      isolated and therefore gives it SharedArrayBuffer.
+
+      The document windows deliberately do not carry those headers:
+      isolation is scoped to the one surface that needs it, and a
+      separate top-level window is the only way to get an isolated agent
+      cluster of its own, which is what multi-threaded WASM requires.
+
+      Nothing chess-related happens here. This document creates Workers and
+      forwards bytes; all UCI parsing and session state live in the main
+      process.
+    -->
+    <!--
+      Absolute, not "./host.js", so the script resolves regardless of
+      whether the document URL carries a trailing slash.
+    -->
+    <script src="/engine-host/host.js"></script>
+  </body>
+</html>
